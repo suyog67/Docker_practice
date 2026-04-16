@@ -1,0 +1,22 @@
+services:
+  web:
+    build:
+      context: .
+    ports:
+      - "5000:5000"
+    environment:
+      - MEMORY_LIMIT=256M
+      - CPU_LIMIT=0.5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'        
+          memory: 256M    
+        reservations:
+          cpus: '0.25'  
+          memory: 128M
+    networks:
+      - my-network
+
+networks:
+  my-network:

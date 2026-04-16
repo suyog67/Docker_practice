@@ -1,0 +1,31 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=mydb
+      - DB_USER=myuser
+      - DB_PASSWORD=mypassword
+    depends_on:
+      - db
+    networks:
+      - day
+  db:
+    image: postgres:15 
+    environment:
+      - POSTGRES_DB=mydb
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword  
+    volumes:
+        - postgres-data:/var/lib/postgresql/data
+    networks:
+        - day
+volumes:
+  postgres-data:
+networks:
+  day:
+

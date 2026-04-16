@@ -1,0 +1,50 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=mydb
+    secrets:
+      - db_user
+      - db_password
+    depends_on:
+      db:
+        condition: service_healthy  
+    networks:
+      - my-network
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=mydb
+      - POSTGRES_USER_FILE=/run/secrets/db_user
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
+    secrets:
+      - db_user
+      - db_password
+    healthcheck:                    
+      test: ["CMD-SHELL", "pg_isready -U myuser -d mydb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - my-network
+
+secrets:
+  db_user:
+    file: ./secrets/db_user.txt
+  db_password:
+    file: ./secrets/db_password.txt
+
+volumes:
+  postgres_data:
+
+networks:
+  my-network:

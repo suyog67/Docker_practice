@@ -1,0 +1,20 @@
+version: '3'
+services: 
+  app-service:
+    build: 
+      context: .
+      dockerfile: Dockerfile.app
+    ports:
+      - "5000:5000"
+    networks:
+      - day 
+  api-service:
+    build: 
+      context: .
+      dockerfile: Dockerfile.api
+      
+    networks:
+      - day
+networks:
+  day:
+
