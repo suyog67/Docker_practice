@@ -1,0 +1,87 @@
+services:
+  frontend:
+    build:
+      context: ./frontend 
+      dockerfile: Dockerfile 
+    ports:
+      - "3000:80"
+    networks:
+      - day
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      backend:        
+        condition: service_healthy
+  backend:
+    build: 
+      context: ./backend 
+      dockerfile: Dockerfile 
+    ports:
+      - "5000:5000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=mydb
+      - DB_USER=myuser        
+      - DB_PASSWORD=mypassword 
+    secrets:
+      - db_user
+      - db_password
+    depends_on:
+      db:
+        condition: service_healthy
+        
+    networks:    
+      - day
+  db:
+    image: postgres:15-alpine 
+    environment:
+      - POSTGRES_DB=mydb
+      - POSTGRES_USER_FILE=/run/secrets/db_user
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
+    secrets:
+      - db_user
+      - db_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - day
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser -d mydb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+
+secrets:
+  db_user:
+    file: ./secrets/db_user.txt
+  db_password:
+    file: ./secrets/db_password.txt
+
+volumes:
+  postgres_data:
+
+networks:
+  day:
+
